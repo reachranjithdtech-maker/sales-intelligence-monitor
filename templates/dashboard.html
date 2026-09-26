@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SalesIntel Monitor</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-card-hover: #22263a;
+  --border: #2a2e3f;
+  --text: #e4e6ef;
+  --text-muted: #8b8fa3;
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --accent-yellow: #eab308;
+  --accent-blue: #3b82f6;
+  --accent-purple: #a855f7;
+  --accent-orange: #f97316;
+  --accent-cyan: #06b6d4;
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app-header {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-header h1 .logo {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-text-fill-color: white;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn:hover { background: var(--bg-card-hover); border-color: var(--primary); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+.btn.primary:hover { background: var(--primary-light); }
+.btn.success { background: var(--accent-green); border-color: var(--accent-green); color: white; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-tab {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--primary-light); border-bottom-color: var(--primary); }
+.nav-tab .badge {
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.content { padding: 24px; max-width: 1440px; margin: 0 auto; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.stat-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-card .stat-value { font-size: 32px; font-weight: 700; }
+.stat-card .stat-value.green { color: var(--accent-green); }
+.stat-card .stat-value.blue { color: var(--accent-blue); }
+.stat-card .stat-value.yellow { color: var(--accent-yellow); }
+.stat-card .stat-value.red { color: var(--accent-red); }
+.stat-card .stat-value.purple { color: var(--accent-purple); }
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h3 { font-size: 15px; font-weight: 600; }
+.panel-body { padding: 16px 20px; max-height: 500px; overflow-y: auto; }
+
+/* Signal Feed */
+.signal-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.signal-item:last-child { border-bottom: none; }
+.signal-item:hover { background: var(--bg-card-hover); margin: 0 -20px; padding: 14px 20px; border-radius: 8px; }
+
+.signal-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.signal-type {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.signal-type.leadership_change { background: #3b1e5e; color: #c084fc; }
+.signal-type.technology_shift { background: #1e3a5f; color: #60a5fa; }
+.signal-type.partnership_deal { background: #1e3b2e; color: #4ade80; }
+.signal-type.content_strategy { background: #3b2e1e; color: #fb923c; }
+.signal-type.market_expansion { background: #3b3b1e; color: #facc15; }
+.signal-type.regulatory_change { background: #3b1e1e; color: #f87171; }
+.signal-type.financial_event { background: #1e3b3b; color: #22d3ee; }
+.signal-type.competitive_move { background: #3b1e3b; color: #e879f9; }
+.signal-type.ad_tech_shift { background: #1e2e3b; color: #38bdf8; }
+.signal-type.platform_launch { background: #2e3b1e; color: #a3e635; }
+
+.severity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.severity-dot.high { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
+.severity-dot.medium { background: var(--accent-yellow); }
+.severity-dot.low { background: var(--accent-green); }
+
+.signal-headline { font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 4px; }
+.signal-account { font-size: 12px; color: var(--text-muted); }
+.signal-time { font-size: 11px; color: var(--text-muted); }
+
+/* Analysis Cards */
+.analysis-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.analysis-card-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.analysis-card-header:hover { background: var(--bg-card-hover); }
+
+.analysis-card-body {
+  padding: 0 16px 16px;
+  display: none;
+}
+
+.analysis-card.expanded .analysis-card-body { display: block; }
+
+.flow-step {
+  padding: 14px 16px;
+  border-left: 3px solid var(--border);
+  margin-bottom: 12px;
+  margin-left: 8px;
+  position: relative;
+}
+
+.flow-step::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 16px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+
+.flow-step.signal { border-color: var(--accent-blue); }
+.flow-step.signal::before { background: var(--accent-blue); }
+.flow-step.context { border-color: var(--accent-purple); }
+.flow-step.context::before { background: var(--accent-purple); }
+.flow-step.implication { border-color: var(--accent-yellow); }
+.flow-step.implication::before { background: var(--accent-yellow); }
+.flow-step.opportunity { border-color: var(--accent-green); }
+.flow-step.opportunity::before { background: var(--accent-green); }
+.flow-step.action { border-color: var(--accent-orange); }
+.flow-step.action::before { background: var(--accent-orange); }
+
+.flow-step-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.flow-step.signal .flow-step-label { color: var(--accent-blue); }
+.flow-step.context .flow-step-label { color: var(--accent-purple); }
+.flow-step.implication .flow-step-label { color: var(--accent-yellow); }
+.flow-step.opportunity .flow-step-label { color: var(--accent-green); }
+.flow-step.action .flow-step-label { color: var(--accent-orange); }
+
+.flow-step-content { font-size: 13px; line-height: 1.6; color: var(--text); }
+
+/* Prospect Table */
+.prospect-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.prospect-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  position: sticky;
+  top: 0;
+}
+
+.prospect-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prospect-table tr { cursor: pointer; transition: background 0.15s; }
+.prospect-table tbody tr:hover { background: var(--bg-card-hover); }
+
+.region-badge, .segment-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.region-badge { background: #1e2748; color: var(--accent-blue); }
+.segment-badge { background: #1e3b2e; color: var(--accent-green); }
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-bar select, .filter-bar input {
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.filter-bar select:focus, .filter-bar input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Action Items */
+.action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.action-item:last-child { border-bottom: none; }
+
+.action-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.action-checkbox:hover { border-color: var(--accent-green); }
+.action-checkbox.completed { background: var(--accent-green); border-color: var(--accent-green); }
+.action-checkbox.completed::after { content: '\2713'; color: white; font-size: 12px; font-weight: 700; }
+
+.action-text { font-size: 13px; line-height: 1.5; }
+.action-text.completed { text-decoration: line-through; color: var(--text-muted); }
+.action-account { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* Urgency badges */
+.urgency-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.urgency-badge.high { background: #3b1e1e; color: #f87171; }
+.urgency-badge.medium { background: #3b3b1e; color: #facc15; }
+.urgency-badge.low { background: #1e3b2e; color: #4ade80; }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 600px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 { font-size: 16px; }
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-body { padding: 24px; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.form-group textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Prospect Detail Panel */
+.detail-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 700px;
+  max-width: 100vw;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  z-index: 150;
+  overflow-y: auto;
+  box-shadow: -10px 0 40px rgba(0,0,0,0.4);
+}
+
+.detail-panel.active { display: block; }
+.detail-panel-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 140;
+}
+
+.detail-panel-overlay.active { display: block; }
+
+.detail-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-header h2 { font-size: 18px; font-weight: 600; }
+.detail-body { padding: 24px; }
+
+.detail-section { margin-bottom: 24px; }
+.detail-section h4 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Toast notifications */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  animation: slideIn 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast.success { border-left: 3px solid var(--accent-green); }
+.toast.error { border-left: 3px solid var(--accent-red); }
+.toast.info { border-left: 3px solid var(--accent-blue); }
+
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Loading spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-area:hover { border-color: var(--primary); background: rgba(99,102,241,0.05); }
+.upload-area.dragging { border-color: var(--primary); background: rgba(99,102,241,0.1); }
+
+/* Charts */
+.mini-chart {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 60px;
+  margin-top: 8px;
+}
+
+.chart-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  min-width: 16px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.chart-bar:hover { opacity: 0.8; }
+
+.chart-bar-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .filter-bar { flex-direction: column; }
+  .detail-panel { width: 100vw; }
+  .header-actions .btn span { display: none; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.empty-state h4 { margin-bottom: 8px; color: var(--text); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1><span class="logo">SI</span> SalesIntel Monitor</h1>
+  <div class="header-actions">
+    <button class="btn" onclick="openUploadModal()">Upload CSV</button>
+    <button class="btn" onclick="generateAllSignals()" id="btn-gen-signals">Generate Signals</button>
+    <button class="btn primary" onclick="analyzeAllPending()" id="btn-analyze">Analyze All</button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-tab="overview">Overview</button>
+  <button class="nav-tab" data-tab="prospects">Prospects <span class="badge" id="prospect-count">0</span></button>
+  <button class="nav-tab" data-tab="signals">Signal Feed <span class="badge" id="signal-count">0</span></button>
+  <button class="nav-tab" data-tab="analyses">Intelligence <span class="badge" id="analysis-count">0</span></button>
+  <button class="nav-tab" data-tab="actions">Actions <span class="badge" id="action-count">0</span></button>
+</nav>
+
+<div class="content">
+  <!-- Overview Tab -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="dashboard-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Recent Signals</h3>
+          <button class="btn" onclick="switchTab('signals')" style="font-size:12px">View All</button>
+        </div>
+        <div class="panel-body" id="recent-signals"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Latest Intelligence</h3>
+          <button class="btn" onclick="switchTab('analyses')" style="font-size:12px">View All</button>
+        </div>
+        <div class="panel-body" id="recent-analyses"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prospects Tab -->
+  <div class="tab-content" id="tab-prospects">
+    <div class="filter-bar">
+      <input type="text" id="prospect-search" placeholder="Search prospects..." style="flex:1;min-width:200px">
+      <select id="filter-region">
+        <option value="all">All Regions</option>
+        <option value="india">India</option>
+        <option value="southeast_asia">Southeast Asia</option>
+        <option value="japan">Japan</option>
+        <option value="korea">Korea</option>
+        <option value="anz">ANZ</option>
+        <option value="other">Other</option>
+      </select>
+      <select id="filter-segment">
+        <option value="all">All Segments</option>
+        <option value="broadcaster">Broadcaster</option>
+        <option value="ott_platform">OTT Platform</option>
+        <option value="telecom">Telecom</option>
+        <option value="cable_dth">Cable/DTH</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="panel">
+      <div class="panel-body" style="max-height:none;padding:0">
+        <table class="prospect-table">
+          <thead>
+            <tr>
+              <th>Account Name</th>
+              <th>Region</th>
+              <th>Segment</th>
+              <th>Signals</th>
+              <th>Priority</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="prospect-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signals Tab -->
+  <div class="tab-content" id="tab-signals">
+    <div class="filter-bar">
+      <select id="filter-signal-type">
+        <option value="all">All Signal Types</option>
+      </select>
+      <button class="btn" onclick="openAddSignalModal()">Add Signal</button>
+    </div>
+    <div id="signals-list"></div>
+  </div>
+
+  <!-- Analyses Tab -->
+  <div class="tab-content" id="tab-analyses">
+    <div id="analyses-list"></div>
+  </div>
+
+  <!-- Actions Tab -->
+  <div class="tab-content" id="tab-actions">
+    <div class="filter-bar">
+      <select id="filter-action-status">
+        <option value="all">All</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="panel">
+      <div class="panel-body" style="max-height:none" id="actions-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Upload Prospect CSV</h3>
+      <button class="modal-close" onclick="closeModal('upload-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('csv-file').click()">
+        <p style="font-size:16px;margin-bottom:8px">Drop CSV file here or click to browse</p>
+        <p style="color:var(--text-muted);font-size:13px">Supports the SalesNavigator CSV export format</p>
+        <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleFileUpload(this)">
+      </div>
+      <div id="upload-result" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Signal Modal -->
+<div class="modal-overlay" id="signal-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Business Signal</h3>
+      <button class="modal-close" onclick="closeModal('signal-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Prospect</label>
+        <select id="signal-prospect"></select>
+      </div>
+      <div class="form-group">
+        <label>Signal Type</label>
+        <select id="signal-type-select"></select>
+      </div>
+      <div class="form-group">
+        <label>Headline</label>
+        <input type="text" id="signal-headline" placeholder="Brief headline about the signal">
+      </div>
+      <div class="form-group">
+        <label>Details</label>
+        <textarea id="signal-summary" placeholder="Provide more context about this signal..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Source</label>
+        <input type="text" id="signal-source" placeholder="e.g., Press Release, Industry Report, News">
+      </div>
+      <div class="form-group">
+        <label>Severity</label>
+        <select id="signal-severity">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('signal-modal')">Cancel</button>
+      <button class="btn primary" onclick="submitSignal()">Add Signal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel-overlay" id="detail-overlay" onclick="closeDetailPanel()"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-header">
+    <h2 id="detail-name"></h2>
+    <button class="modal-close" onclick="closeDetailPanel()">&times;</button>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API = '';
+
+// State
+let prospects = [];
+let dashboardData = {};
+
+// Tab Navigation
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+});
+
+function switchTab(tabName) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  document.getElementById(`tab-${tabName}`).classList.add('active');
+
+  if (tabName === 'overview') loadDashboard();
+  else if (tabName === 'prospects') loadProspects();
+  else if (tabName === 'signals') loadSignals();
+  else if (tabName === 'analyses') loadAnalyses();
+  else if (tabName === 'actions') loadActions();
+}
+
+// Toast Notifications
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// Modal Helpers
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Dashboard
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API}/api/dashboard`);
+    dashboardData = await res.json();
+    renderDashboard();
+  } catch (e) {
+    console.error('Failed to load dashboard:', e);
+  }
+}
+
+function renderDashboard() {
+  const d = dashboardData;
+  const statsHtml = `
+    <div class="stat-card"><div class="stat-label">Total Prospects</div><div class="stat-value blue">${d.total_prospects}</div></div>
+    <div class="stat-card"><div class="stat-label">Active Signals</div><div class="stat-value yellow">${d.total_signals}</div></div>
+    <div class="stat-card"><div class="stat-label">Unread Signals</div><div class="stat-value red">${d.unread_signals}</div></div>
+    <div class="stat-card"><div class="stat-label">Intelligence Reports</div><div class="stat-value purple">${d.total_analyses}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Actions</div><div class="stat-value green">${d.pending_actions}</div></div>
+    <div class="stat-card"><div class="stat-label">High Urgency</div><div class="stat-value red">${d.high_urgency}</div></div>
+  `;
+  document.getElementById('stats-grid').innerHTML = statsHtml;
+  document.getElementById('prospect-count').textContent = d.total_prospects;
+  document.getElementById('signal-count').textContent = d.total_signals;
+  document.getElementById('analysis-count').textContent = d.total_analyses;
+  document.getElementById('action-count').textContent = d.pending_actions;
+
+  // Recent Signals
+  const signalsEl = document.getElementById('recent-signals');
+  if (d.recent_signals && d.recent_signals.length) {
+    signalsEl.innerHTML = d.recent_signals.map(s => renderSignalItem(s)).join('');
+  } else {
+    signalsEl.innerHTML = '<div class="empty-state"><h4>No signals yet</h4><p>Generate signals or add them manually</p></div>';
+  }
+
+  // Recent Analyses
+  const analysesEl = document.getElementById('recent-analyses');
+  if (d.recent_analyses && d.recent_analyses.length) {
+    analysesEl.innerHTML = d.recent_analyses.map(a => renderMiniAnalysis(a)).join('');
+  } else {
+    analysesEl.innerHTML = '<div class="empty-state"><h4>No intelligence yet</h4><p>Analyze signals to generate intelligence</p></div>';
+  }
+}
+
+function renderSignalItem(s) {
+  return `
+    <div class="signal-item" onclick="analyzeSignal(${s.id})">
+      <div class="signal-meta">
+        <span class="severity-dot ${s.severity}"></span>
+        <span class="signal-type ${s.signal_type}">${s.signal_type.replace(/_/g, ' ')}</span>
+        <span class="signal-account">${s.account_name}</span>
+      </div>
+      <div class="signal-headline">${s.headline}</div>
+      <div class="signal-time">${formatTime(s.detected_at)}</div>
+    </div>
+  `;
+}
+
+function renderMiniAnalysis(a) {
+  const sType = a.signal_type || 'technology_shift';
+  const sHeadline = a.signal_headline || truncate(a.context, 80);
+  return `
+    <div class="signal-item" onclick="switchTab('analyses')">
+      <div class="signal-meta">
+        <span class="urgency-badge ${a.urgency}">${a.urgency}</span>
+        <span class="signal-type ${sType}">${sType.replace(/_/g, ' ')}</span>
+        <span class="signal-account">${a.account_name}</span>
+      </div>
+      <div class="signal-headline">${sHeadline}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">${truncate(a.comcast_opportunity, 120)}</div>
+    </div>
+  `;
+}
+
+// Prospects
+async function loadProspects() {
+  const region = document.getElementById('filter-region').value;
+  const segment = document.getElementById('filter-segment').value;
+  const search = document.getElementById('prospect-search').value;
+
+  try {
+    const params = new URLSearchParams();
+    if (region !== 'all') params.set('region', region);
+    if (segment !== 'all') params.set('segment', segment);
+    if (search) params.set('search', search);
+
+    const res = await fetch(`${API}/api/prospects?${params}`);
+    prospects = await res.json();
+    renderProspects();
+  } catch (e) {
+    console.error('Failed to load prospects:', e);
+  }
+}
+
+function renderProspects() {
+  const tbody = document.getElementById('prospect-tbody');
+  if (!prospects.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">No prospects found. Upload a CSV to get started.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = prospects.map(p => `
+    <tr onclick="openProspectDetail(${p.id})">
+      <td><strong>${p.account_name}</strong></td>
+      <td><span class="region-badge">${(p.region || 'other').replace(/_/g, ' ')}</span></td>
+      <td><span class="segment-badge">${(p.segment || 'other').replace(/_/g, ' ')}</span></td>
+      <td>-</td>
+      <td><span class="urgency-badge ${p.priority}">${p.priority}</span></td>
+      <td>
+        <button class="btn" onclick="event.stopPropagation(); generateSignalsFor(${p.id})" style="font-size:11px;padding:4px 10px">Scan</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Filters
+document.getElementById('filter-region').addEventListener('change', loadProspects);
+document.getElementById('filter-segment').addEventListener('change', loadProspects);
+let searchTimeout;
+document.getElementById('prospect-search').addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(loadProspects, 300);
+});
+
+// Signals
+async function loadSignals() {
+  const type = document.getElementById('filter-signal-type').value;
+  try {
+    const params = new URLSearchParams();
+    if (type !== 'all') params.set('type', type);
+    const res = await fetch(`${API}/api/signals?${params}`);
+    const signals = await res.json();
+    renderSignals(signals);
+  } catch (e) {
+    console.error('Failed to load signals:', e);
+  }
+}
+
+function renderSignals(signals) {
+  const el = document.getElementById('signals-list');
+  if (!signals.length) {
+    el.innerHTML = '<div class="panel"><div class="empty-state"><h4>No signals detected</h4><p>Generate signals for your prospects or add them manually</p></div></div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="panel"><div class="panel-body" style="max-height:none">' +
+    signals.map(s => `
+      <div class="signal-item">
+        <div class="signal-meta">
+          <span class="severity-dot ${s.severity}"></span>
+          <span class="signal-type ${s.signal_type}">${s.signal_type.replace(/_/g, ' ')}</span>
+          <span class="signal-account">${s.account_name}</span>
+          <span class="signal-time">${formatTime(s.detected_at)}</span>
+        </div>
+        <div class="signal-headline">${s.headline}</div>
+        ${s.summary ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5">${s.summary}</div>` : ''}
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn primary" onclick="analyzeSignal(${s.id})" style="font-size:11px;padding:4px 12px">Analyze</button>
+          <button class="btn" onclick="dismissSignal(${s.id})" style="font-size:11px;padding:4px 12px">Dismiss</button>
+        </div>
+      </div>
+    `).join('') +
+    '</div></div>';
+}
+
+document.getElementById('filter-signal-type').addEventListener('change', loadSignals);
+
+// Analyses
+async function loadAnalyses() {
+  try {
+    const res = await fetch(`${API}/api/analyses`);
+    const analyses = await res.json();
+    renderAnalyses(analyses);
+  } catch (e) {
+    console.error('Failed to load analyses:', e);
+  }
+}
+
+function renderAnalyses(analyses) {
+  const el = document.getElementById('analyses-list');
+  if (!analyses.length) {
+    el.innerHTML = '<div class="panel"><div class="empty-state"><h4>No intelligence reports yet</h4><p>Analyze signals to generate the Signal-Context-Implication-Opportunity-Action flow</p></div></div>';
+    return;
+  }
+
+  el.innerHTML = analyses.map((a, i) => {
+    const sType = a.signal_type || 'technology_shift';
+    const sHeadline = a.signal_headline || truncate(a.context, 100);
+    return `
+    <div class="analysis-card ${i === 0 ? 'expanded' : ''}" id="analysis-${a.id}">
+      <div class="analysis-card-header" onclick="toggleAnalysis(${a.id})">
+        <div>
+          <div class="signal-meta" style="margin-bottom:4px">
+            <span class="urgency-badge ${a.urgency}">${a.urgency}</span>
+            <span class="signal-type ${sType}">${sType.replace(/_/g, ' ')}</span>
+            <span class="signal-account">${a.account_name}</span>
+          </div>
+          <div style="font-size:14px;font-weight:500">${sHeadline}</div>
+          ${a.opportunity_value ? `<div style="font-size:12px;color:var(--accent-green);margin-top:4px">Opportunity: ${a.opportunity_value}</div>` : ''}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;margin-left:16px">
+          ${a.confidence_score ? `${Math.round(a.confidence_score * 100)}% confidence` : ''}
+        </div>
+      </div>
+      <div class="analysis-card-body">
+        <div class="flow-step signal">
+          <div class="flow-step-label">Signal Detected</div>
+          <div class="flow-step-content">${sHeadline}</div>
+        </div>
+        <div class="flow-step context">
+          <div class="flow-step-label">Context</div>
+          <div class="flow-step-content">${a.context || 'N/A'}</div>
+        </div>
+        <div class="flow-step implication">
+          <div class="flow-step-label">Business Implication</div>
+          <div class="flow-step-content">${a.business_implication || 'N/A'}</div>
+        </div>
+        <div class="flow-step opportunity">
+          <div class="flow-step-label">Comcast Opportunity</div>
+          <div class="flow-step-content">${a.comcast_opportunity || 'N/A'}</div>
+        </div>
+        <div class="flow-step action">
+          <div class="flow-step-label">Recommended Action</div>
+          <div class="flow-step-content">${(a.recommended_action || 'N/A').replace(/\n/g, '<br>')}</div>
+        </div>
+      </div>
+    </div>
+  `;}).join('');
+}
+
+function toggleAnalysis(id) {
+  document.getElementById(`analysis-${id}`).classList.toggle('expanded');
+}
+
+// Actions
+async function loadActions() {
+  const status = document.getElementById('filter-action-status').value;
+  try {
+    const params = new URLSearchParams();
+    if (status !== 'all') params.set('status', status);
+    const res = await fetch(`${API}/api/actions?${params}`);
+    const actions = await res.json();
+    renderActions(actions);
+  } catch (e) {
+    console.error('Failed to load actions:', e);
+  }
+}
+
+function renderActions(actions) {
+  const el = document.getElementById('actions-list');
+  if (!actions.length) {
+    el.innerHTML = '<div class="empty-state"><h4>No action items</h4><p>Actions are generated from signal analysis</p></div>';
+    return;
+  }
+
+  el.innerHTML = actions.map(a => `
+    <div class="action-item">
+      <div class="action-checkbox ${a.status === 'completed' ? 'completed' : ''}"
+           onclick="toggleAction(${a.id}, '${a.status}')"></div>
+      <div style="flex:1">
+        <div class="action-text ${a.status === 'completed' ? 'completed' : ''}">${a.action_text}</div>
+        <div class="action-account">${a.account_name} ${a.comcast_opportunity ? '| ' + truncate(a.comcast_opportunity, 80) : ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('filter-action-status').addEventListener('change', loadActions);
+
+async function toggleAction(id, currentStatus) {
+  const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+  await fetch(`${API}/api/actions/${id}/status`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({status: newStatus}),
+  });
+  loadActions();
+}
+
+// Prospect Detail
+async function openProspectDetail(id) {
+  document.getElementById('detail-overlay').classList.add('active');
+  document.getElementById('detail-panel').classList.add('active');
+  document.getElementById('detail-body').innerHTML = '<div class="loading-state"><div class="spinner"></div> Loading...</div>';
+
+  try {
+    const res = await fetch(`${API}/api/prospects/${id}`);
+    const data = await res.json();
+    renderProspectDetail(data);
+  } catch (e) {
+    document.getElementById('detail-body').innerHTML = '<p>Failed to load prospect details.</p>';
+  }
+}
+
+function renderProspectDetail(data) {
+  const p = data.prospect;
+  document.getElementById('detail-name').textContent = p.account_name;
+
+  let html = `
+    <div class="detail-section">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <span class="region-badge">${(p.region || 'other').replace(/_/g, ' ')}</span>
+        <span class="segment-badge">${(p.segment || 'other').replace(/_/g, ' ')}</span>
+        <span class="urgency-badge ${p.priority}">${p.priority} priority</span>
+      </div>
+      ${p.website ? `<div style="font-size:13px;margin-bottom:4px">Website: <a href="${p.website}" target="_blank" style="color:var(--primary-light)">${p.website}</a></div>` : ''}
+      ${p.country ? `<div style="font-size:13px;margin-bottom:4px">Location: ${[p.city, p.country].filter(Boolean).join(', ')}</div>` : ''}
+      ${p.industry ? `<div style="font-size:13px">Industry: ${p.industry}</div>` : ''}
+    </div>
+  `;
+
+  // Signals
+  html += '<div class="detail-section"><h4>Signals (${count})</h4>'.replace('${count}', data.signals.length);
+  if (data.signals.length) {
+    html += data.signals.map(s => renderSignalItem(s)).join('');
+  } else {
+    html += `<p style="color:var(--text-muted);font-size:13px">No signals yet.
+      <button class="btn" onclick="generateSignalsFor(${p.id})" style="font-size:11px;padding:4px 10px;margin-left:8px">Generate</button></p>`;
+  }
+  html += '</div>';
+
+  // Analyses
+  html += '<div class="detail-section"><h4>Intelligence (${count})</h4>'.replace('${count}', data.analyses.length);
+  if (data.analyses.length) {
+    data.analyses.forEach(a => {
+      html += `
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border)">
+          <div class="signal-meta" style="margin-bottom:8px">
+            <span class="urgency-badge ${a.urgency}">${a.urgency}</span>
+            <span style="font-size:12px;color:var(--text-muted)">${a.signal_headline}</span>
+          </div>
+          <div class="flow-step opportunity" style="margin-left:0;margin-bottom:8px">
+            <div class="flow-step-label">Comcast Opportunity</div>
+            <div class="flow-step-content">${a.comcast_opportunity}</div>
+          </div>
+          <div class="flow-step action" style="margin-left:0;margin-bottom:0">
+            <div class="flow-step-label">Recommended Action</div>
+            <div class="flow-step-content">${(a.recommended_action || '').replace(/\n/g, '<br>')}</div>
+          </div>
+        </div>`;
+    });
+  } else {
+    html += '<p style="color:var(--text-muted);font-size:13px">No analyses yet.</p>';
+  }
+  html += '</div>';
+
+  document.getElementById('detail-body').innerHTML = html;
+}
+
+function closeDetailPanel() {
+  document.getElementById('detail-overlay').classList.remove('active');
+  document.getElementById('detail-panel').classList.remove('active');
+}
+
+// Signal Actions
+async function analyzeSignal(signalId) {
+  showToast('Analyzing signal...', 'info');
+  try {
+    const res = await fetch(`${API}/api/signals/${signalId}/analyze`, {method: 'POST'});
+    const data = await res.json();
+    if (data.analysis_id) {
+      showToast('Analysis complete!', 'success');
+      loadDashboard();
+    } else {
+      showToast('Analysis failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('Analysis failed', 'error');
+  }
+}
+
+async function dismissSignal(signalId) {
+  await fetch(`${API}/api/signals/${signalId}/dismiss`, {method: 'POST'});
+  showToast('Signal dismissed', 'info');
+  loadSignals();
+}
+
+async function generateSignalsFor(prospectId) {
+  showToast('Generating intelligence signals...', 'info');
+  try {
+    const res = await fetch(`${API}/api/generate-signals/${prospectId}`, {method: 'POST'});
+    const data = await res.json();
+    showToast(data.message, 'success');
+    loadDashboard();
+    loadProspects();
+  } catch (e) {
+    showToast('Failed to generate signals', 'error');
+  }
+}
+
+async function generateAllSignals() {
+  const btn = document.getElementById('btn-gen-signals');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Generating...';
+  try {
+    const res = await fetch(`${API}/api/generate-all-signals`, {method: 'POST'});
+    const data = await res.json();
+    showToast(data.message, 'success');
+    loadDashboard();
+  } catch (e) {
+    showToast('Failed to generate signals', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Generate Signals';
+  }
+}
+
+async function analyzeAllPending() {
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Analyzing...';
+  try {
+    const res = await fetch(`${API}/api/analyze-all-pending`, {method: 'POST'});
+    const data = await res.json();
+    showToast(data.message, 'success');
+    loadDashboard();
+  } catch (e) {
+    showToast('Failed to analyze signals', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Analyze All';
+  }
+}
+
+// Upload
+function openUploadModal() { openModal('upload-modal'); }
+
+async function handleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  document.getElementById('upload-result').innerHTML = '<div class="loading-state"><div class="spinner"></div> Importing...</div>';
+
+  try {
+    const res = await fetch(`${API}/api/upload-csv`, {method: 'POST', body: formData});
+    const data = await res.json();
+    document.getElementById('upload-result').innerHTML =
+      `<div class="toast success" style="animation:none">${data.message}</div>`;
+    showToast(data.message, 'success');
+    loadDashboard();
+    loadProspects();
+  } catch (e) {
+    document.getElementById('upload-result').innerHTML =
+      '<div class="toast error" style="animation:none">Upload failed</div>';
+    showToast('Upload failed', 'error');
+  }
+
+  input.value = '';
+}
+
+// Add Signal
+function openAddSignalModal() {
+  openModal('signal-modal');
+  const select = document.getElementById('signal-prospect');
+  select.innerHTML = prospects.map(p => `<option value="${p.id}">${p.account_name}</option>`).join('');
+}
+
+async function submitSignal() {
+  const data = {
+    prospect_id: parseInt(document.getElementById('signal-prospect').value),
+    signal_type: document.getElementById('signal-type-select').value,
+    headline: document.getElementById('signal-headline').value,
+    summary: document.getElementById('signal-summary').value,
+    source: document.getElementById('signal-source').value,
+    severity: document.getElementById('signal-severity').value,
+  };
+
+  if (!data.headline) {
+    showToast('Headline is required', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/api/signals`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    showToast('Signal added!', 'success');
+    closeModal('signal-modal');
+    loadSignals();
+    loadDashboard();
+  } catch (e) {
+    showToast('Failed to add signal', 'error');
+  }
+}
+
+// Drag & Drop
+const uploadArea = document.getElementById('upload-area');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragging'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragging'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragging');
+  if (e.dataTransfer.files.length) {
+    document.getElementById('csv-file').files = e.dataTransfer.files;
+    handleFileUpload(document.getElementById('csv-file'));
+  }
+});
+
+// Helpers
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts + 'Z');
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return d.toLocaleDateString();
+}
+
+function truncate(s, n) {
+  if (!s) return '';
+  return s.length > n ? s.substring(0, n) + '...' : s;
+}
+
+// Load Signal Types
+async function loadSignalTypes() {
+  try {
+    const res = await fetch(`${API}/api/signal-types`);
+    const types = await res.json();
+    const filterSelect = document.getElementById('filter-signal-type');
+    const formSelect = document.getElementById('signal-type-select');
+    types.forEach(t => {
+      filterSelect.innerHTML += `<option value="${t}">${t.replace(/_/g, ' ')}</option>`;
+      formSelect.innerHTML += `<option value="${t}">${t.replace(/_/g, ' ')}</option>`;
+    });
+  } catch (e) {
+    console.error('Failed to load signal types:', e);
+  }
+}
+
+// Init
+loadDashboard();
+loadSignalTypes();
+</script>
+</body>
+</html>

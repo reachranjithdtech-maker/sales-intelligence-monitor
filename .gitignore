@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+data/salesintel.db
+data/salesintel.db-wal
+data/salesintel.db-shm
+.env
+*.numbers
+.DS_Store
+.claude/
