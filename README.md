@@ -29,3 +29,7 @@ Key features for growth:
 CSV upload supports your SalesNavigator format for adding new prospects
 SQLite with WAL mode handles concurrent access as data grows
 When you set ANTHROPIC_API_KEY, analyses use Claude Sonnet for AI-powered insights; without it, the intelligent rule-based engine handles everything
+
+To run:
+Put into Documents folder in your Mac
+cd ~/Documents/SalesIntel && python3 app.py
